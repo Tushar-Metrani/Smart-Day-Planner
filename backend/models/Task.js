@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 const taskSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    goal: { type: mongoose.Schema.Types.ObjectId, ref: "Goal" }, // optional link to a Goal
+    goal: { type: mongoose.Schema.Types.ObjectId, ref: "Goal" },
+    progressAmount: { type: Number, default: 0 }, // e.g. 10 (pages) — only counted toward the goal if this task is completed
     title: { type: String, required: true },
     notes: { type: String },
     date: { type: Date, required: true, index: true },
@@ -29,5 +30,6 @@ const taskSchema = new mongoose.Schema(
 );
 
 taskSchema.index({ user: 1, date: 1 });
+taskSchema.index({ goal: 1 });
 
 export default mongoose.model("Task", taskSchema);

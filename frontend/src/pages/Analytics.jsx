@@ -9,13 +9,14 @@ import {
 } from "../utils/statsUtils.js";
 
 const RANGE_OPTIONS = [
+  { label: "Today", days: 1},
   { label: "7 days", days: 7 },
   { label: "30 days", days: 30 },
   { label: "90 days", days: 90 },
 ];
 
 export default function Analytics() {
-  const [rangeDays, setRangeDays] = useState(30);
+  const [rangeDays, setRangeDays] = useState(1);
   const [tasks, setTasks] = useState([]);
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);

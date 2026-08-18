@@ -12,6 +12,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
   const [category, setCategory] = useState(existingTask?.category || "general");
   const [recurrenceType, setRecurrenceType] = useState(existingTask?.recurrence?.type || "none");
   const [goalId, setGoalId] = useState(existingTask?.goal?._id || existingTask?.goal || "");
+  const [progressAmount, setProgressAmount] = useState(existingTask?.progressAmount || "");
 
   useEffect(() => {
     setTitle(existingTask?.title || "");
@@ -22,7 +23,10 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
     setCategory(existingTask?.category || "general");
     setRecurrenceType(existingTask?.recurrence?.type || "none");
     setGoalId(existingTask?.goal?._id || existingTask?.goal || "");
+    setProgressAmount(existingTask?.progressAmount || "");
   }, [existingTask]);
+
+  const linkedGoal = goals.find((g) => g._id === goalId);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,6 +41,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
       category,
       recurrence: { type: recurrenceType, interval: 1 },
       goal: goalId || undefined,
+      progressAmount: goalId ? Number(progressAmount) || 0 : 0,
     });
   };
 
@@ -97,6 +102,23 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
                   <option key={g._id} value={g._id}>{g.title}</option>
                 ))}
               </select>
+            </label>
+          )}
+
+          {goalId && linkedGoal && (
+            <label>
+              Progress this session ({linkedGoal.unit})
+              <input
+                type="number"
+                min="0"
+                placeholder={`e.g. 10 ${linkedGoal.unit}`}
+                value={progressAmount}
+                onChange={(e) => setProgressAmount(e.target.value)}
+                style={{ width: "100%" }}
+              />
+              <span style={{ fontSize: 11, color: "#888" }}>
+                Only counted toward the goal once this block is marked complete.
+              </span>
             </label>
           )}
 

@@ -8,7 +8,8 @@ const goalSchema = new mongoose.Schema(
     category: { type: String, default: "general" },
     priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
     deadline: { type: Date },
-    estimatedMinutes: { type: Number },
+    unit: { type: String, default: "sessions" }, // e.g. "pages", "km", "hours", "words"
+    targetValue: { type: Number, default: 1 },
     status: { type: String, enum: ["not_started", "in_progress", "completed"], default: "not_started" },
   },
   { timestamps: true }
