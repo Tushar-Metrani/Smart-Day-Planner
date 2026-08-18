@@ -4,7 +4,8 @@ const taskSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     goal: { type: mongoose.Schema.Types.ObjectId, ref: "Goal" },
-    progressAmount: { type: Number, default: 0 }, // e.g. 10 (pages) — only counted toward the goal if this task is completed
+    progressAmount: { type: Number, default: 0 },
+    seriesId: { type: String, index: true }, // shared across all instances generated from one recurring task
     title: { type: String, required: true },
     notes: { type: String },
     date: { type: Date, required: true, index: true },

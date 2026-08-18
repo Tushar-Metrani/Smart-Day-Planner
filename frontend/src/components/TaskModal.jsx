@@ -11,8 +11,12 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
   const [priority, setPriority] = useState(existingTask?.priority || "medium");
   const [category, setCategory] = useState(existingTask?.category || "general");
   const [recurrenceType, setRecurrenceType] = useState(existingTask?.recurrence?.type || "none");
+  const [recurrenceEnd, setRecurrenceEnd] = useState("");
   const [goalId, setGoalId] = useState(existingTask?.goal?._id || existingTask?.goal || "");
   const [progressAmount, setProgressAmount] = useState(existingTask?.progressAmount || "");
+  const [scope, setScope] = useState("this"); // "this" | "future" — only relevant when editing a series instance
+
+  const isEditingSeriesInstance = Boolean(existingTask?.seriesId);
 
   useEffect(() => {
     setTitle(existingTask?.title || "");
@@ -24,6 +28,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
     setRecurrenceType(existingTask?.recurrence?.type || "none");
     setGoalId(existingTask?.goal?._id || existingTask?.goal || "");
     setProgressAmount(existingTask?.progressAmount || "");
+    setScope("this");
   }, [existingTask]);
 
   const linkedGoal = goals.find((g) => g._id === goalId);
@@ -31,7 +36,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onSave({
+    const payload = {
       title,
       notes,
       date,
@@ -39,10 +44,13 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
       endTime: endTime || undefined,
       priority,
       category,
-      recurrence: { type: recurrenceType, interval: 1 },
       goal: goalId || undefined,
       progressAmount: goalId ? Number(progressAmount) || 0 : 0,
-    });
+    };
+    if (!existingTask) {
+      payload.recurrence = { type: recurrenceType, interval: 1, endDate: recurrenceEnd || undefined };
+    }
+    onSave(payload, scope);
   };
 
   return (
@@ -83,15 +91,37 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
             </label>
           </div>
 
-          <label>
-            Repeats
-            <select value={recurrenceType} onChange={(e) => setRecurrenceType(e.target.value)} style={{ width: "100%" }}>
-              <option value="none">Does not repeat</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </label>
+          {!existingTask && (
+            <>
+              <label>
+                Repeats
+                <select value={recurrenceType} onChange={(e) => setRecurrenceType(e.target.value)} style={{ width: "100%" }}>
+                  <option value="none">Does not repeat</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </label>
+              {recurrenceType !== "none" && (
+                <label>
+                  Ends on (optional — defaults to 90 days out)
+                  <input type="date" value={recurrenceEnd} onChange={(e) => setRecurrenceEnd(e.target.value)} style={{ width: "100%" }} />
+                </label>
+              )}
+            </>
+          )}
+
+          {isEditingSeriesInstance && (
+            <div style={{ fontSize: 13, background: "#f8f8f8", padding: 8, borderRadius: 6 }}>
+              <div style={{ marginBottom: 4, color: "#666" }}>Part of a repeating series. Apply changes to:</div>
+              <label style={{ display: "block" }}>
+                <input type="radio" checked={scope === "this"} onChange={() => setScope("this")} /> Just this occurrence
+              </label>
+              <label style={{ display: "block" }}>
+                <input type="radio" checked={scope === "future"} onChange={() => setScope("future")} /> This and all future occurrences
+              </label>
+            </div>
+          )}
 
           {goals.length > 0 && (
             <label>
@@ -116,16 +146,13 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
                 onChange={(e) => setProgressAmount(e.target.value)}
                 style={{ width: "100%" }}
               />
-              <span style={{ fontSize: 11, color: "#888" }}>
-                Only counted toward the goal once this block is marked complete.
-              </span>
             </label>
           )}
 
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
             <div>
               {existingTask && (
-                <button type="button" onClick={() => onDelete(existingTask._id)} style={{ color: "red" }}>
+                <button type="button" onClick={() => onDelete(existingTask._id, scope)} style={{ color: "red" }}>
                   Delete
                 </button>
               )}

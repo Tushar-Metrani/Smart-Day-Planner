@@ -83,9 +83,9 @@ export default function Schedule() {
     setModalOpen(true);
   };
 
-  const handleSave = async (payload) => {
+  const handleSave = async (payload, scope) => {
     if (editingTask) {
-      await api.put(`/tasks/${editingTask._id}`, payload);
+      await api.put(`/tasks/${editingTask._id}?scope=${scope}`, payload);
     } else {
       await api.post("/tasks", payload);
     }
@@ -93,8 +93,8 @@ export default function Schedule() {
     fetchTasks();
   };
 
-  const handleDelete = async (id) => {
-    await api.delete(`/tasks/${id}`);
+  const handleDelete = async (id, scope) => {
+    await api.delete(`/tasks/${id}?scope=${scope}`);
     setModalOpen(false);
     fetchTasks();
   };
