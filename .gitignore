@@ -1,0 +1,103 @@
+# ==========================================
+# BACKEND
+# ==========================================
+
+# Backend dependencies
+/backend/node_modules/
+
+# Backend environment variables
+/backend/.env
+/backend/.env.*
+!/backend/.env.example
+
+# Backend logs
+/backend/*.log
+/backend/logs/
+
+# Backend build/output
+/backend/dist/
+/backend/build/
+
+
+# ==========================================
+# FRONTEND
+# ==========================================
+
+# Frontend dependencies
+/frontend/node_modules/
+
+# Frontend environment variables
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
+
+# Frontend build/output
+/frontend/dist/
+/frontend/build/
+
+# Vite cache
+/frontend/.vite/
+
+
+# ==========================================
+# GENERAL NODE.JS
+# ==========================================
+
+# npm/yarn/pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# General logs
+*.log
+logs/
+
+
+# ==========================================
+# TESTING / COVERAGE
+# ==========================================
+
+coverage/
+.nyc_output/
+
+
+# ==========================================
+# CACHE
+# ==========================================
+
+.cache/
+.eslintcache/
+
+
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+
+# ==========================================
+# EDITORS / IDEs
+# ==========================================
+
+.idea/
+.vscode/
+
+*.swp
+*.swo
+*~
+
+
+# ==========================================
+# TEMPORARY FILES
+# ==========================================
+
+*.tmp
+*.temp
+*.bak
+
+# README
+/README.md
