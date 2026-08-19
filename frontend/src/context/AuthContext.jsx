@@ -31,8 +31,18 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Merges partial updates (e.g. after editing name/timezone in Settings)
+  // into both state and localStorage, keeping the token intact.
+  const updateUser = (partial) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...partial };
+      localStorage.setItem("user", JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
