@@ -13,8 +13,8 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
   const [recurrenceType, setRecurrenceType] = useState(existingTask?.recurrence?.type || "none");
   const [recurrenceEnd, setRecurrenceEnd] = useState("");
   const [goalId, setGoalId] = useState(existingTask?.goal?._id || existingTask?.goal || "");
-  const [progressAmount, setProgressAmount] = useState(existingTask?.progressAmount || "");
-  const [scope, setScope] = useState("this"); // "this" | "future" — only relevant when editing a series instance
+  const [scope, setScope] = useState("this");
+  const [error, setError] = useState("");
 
   const isEditingSeriesInstance = Boolean(existingTask?.seriesId);
 
@@ -27,25 +27,32 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
     setCategory(existingTask?.category || "general");
     setRecurrenceType(existingTask?.recurrence?.type || "none");
     setGoalId(existingTask?.goal?._id || existingTask?.goal || "");
-    setProgressAmount(existingTask?.progressAmount || "");
     setScope("this");
+    setError("");
   }, [existingTask]);
 
-  const linkedGoal = goals.find((g) => g._id === goalId);
-
-  const handleSubmit = (e) => {
+   const handleSubmit = (e) => {
     e.preventDefault();
+    setError("");
     if (!title.trim()) return;
+    if (!startTime || !endTime) {
+      setError("Start and end time are required.");
+      return;
+    }
+    if (endTime <= startTime) {
+      setError("End time must be after start time.");
+      return;
+    }
+
     const payload = {
       title,
       notes,
       date,
-      startTime: startTime || undefined,
-      endTime: endTime || undefined,
+      startTime,
+      endTime,
       priority,
       category,
       goal: goalId || undefined,
-      progressAmount: goalId ? Number(progressAmount) || 0 : 0,
     };
     if (!existingTask) {
       payload.recurrence = { type: recurrenceType, interval: 1, endDate: recurrenceEnd || undefined };
@@ -63,12 +70,12 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
 
           <div style={{ display: "flex", gap: 10 }}>
             <label style={{ flex: 1 }}>
-              Start
-              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={{ width: "100%" }} />
+              Start *
+              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={{ width: "100%" }} required />
             </label>
             <label style={{ flex: 1 }}>
-              End
-              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={{ width: "100%" }} />
+              End *
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={{ width: "100%" }} required />
             </label>
           </div>
 
@@ -135,19 +142,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
             </label>
           )}
 
-          {goalId && linkedGoal && (
-            <label>
-              Progress this session ({linkedGoal.unit})
-              <input
-                type="number"
-                min="0"
-                placeholder={`e.g. 10 ${linkedGoal.unit}`}
-                value={progressAmount}
-                onChange={(e) => setProgressAmount(e.target.value)}
-                style={{ width: "100%" }}
-              />
-            </label>
-          )}
+          {error && <p style={{ color: "#dc2626", fontSize: 13, margin: 0 }}>{error}</p>}
 
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
             <div>

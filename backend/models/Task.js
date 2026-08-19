@@ -5,12 +5,12 @@ const taskSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     goal: { type: mongoose.Schema.Types.ObjectId, ref: "Goal" },
     progressAmount: { type: Number, default: 0 },
-    seriesId: { type: String, index: true }, // shared across all instances generated from one recurring task
+    seriesId: { type: String, index: true },
     title: { type: String, required: true },
     notes: { type: String },
     date: { type: Date, required: true, index: true },
-    startTime: { type: String },
-    endTime: { type: String },
+    startTime: { type: String, required: true }, // "HH:mm"
+    endTime: { type: String, required: true },
     priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
     category: { type: String, default: "general" },
     completed: { type: Boolean, default: false },

@@ -99,8 +99,12 @@ export default function Schedule() {
     fetchTasks();
   };
 
-  const toggleComplete = async (task) => {
-    await api.put(`/tasks/${task._id}`, { completed: !task.completed });
+  const toggleComplete = async (task, progressAmount) => {
+    const payload = { completed: !task.completed };
+    if (!task.completed && progressAmount !== undefined) {
+      payload.progressAmount = progressAmount;
+    }
+    await api.put(`/tasks/${task._id}`, payload);
     fetchTasks();
   };
 
@@ -138,6 +142,7 @@ export default function Schedule() {
       <TimelineView
         date={selectedDay}
         tasks={selectedDayTasks}
+        goals={goals}
         onToggleComplete={toggleComplete}
         onEditTask={openEditTaskModal}
         onAddTask={openNewTaskModal}
