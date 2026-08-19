@@ -1,7 +1,6 @@
 import { timeToMinutes } from "./categoryMeta.js";
 import { toISODate } from "./dateUtils.js";
 
-// Duration in minutes for a task; falls back to 30min if no endTime is set.
 const taskDuration = (t) => {
   if (!t.startTime) return 0;
   const start = timeToMinutes(t.startTime);
@@ -19,7 +18,6 @@ export const computeTaskStats = (tasks) => {
     .filter((t) => t.completed)
     .reduce((sum, t) => sum + taskDuration(t), 0);
 
-  // Time per category (completed tasks only — reflects time actually spent, not just planned)
   const categoryMap = {};
   for (const t of tasks.filter((t) => t.completed)) {
     const minutes = taskDuration(t);
@@ -34,8 +32,6 @@ export const computeTaskStats = (tasks) => {
   return { total, completed, completionRate, totalScheduledMinutes, totalCompletedMinutes, categoryBreakdown };
 };
 
-// Current streak: consecutive days (counting back from today) that have at
-// least one completed task. Breaks on the first day with zero completions.
 export const computeStreak = (tasks) => {
   const completedDates = new Set(
     tasks.filter((t) => t.completed).map((t) => toISODate(t.date))
@@ -64,4 +60,64 @@ export const formatMinutes = (minutes) => {
   if (h && m) return `${h}h ${m}m`;
   if (h) return `${h}h`;
   return `${m}m`;
+};
+
+// One entry per calendar day in range, oldest first — used for the daily trend bars.
+export const computeDailyTrend = (tasks, days) => {
+  const byDate = {};
+  for (const t of tasks) {
+    const iso = toISODate(t.date);
+    if (!byDate[iso]) byDate[iso] = { total: 0, completed: 0 };
+    byDate[iso].total += 1;
+    if (t.completed) byDate[iso].completed += 1;
+  }
+
+  const result = [];
+  const cursor = new Date();
+  cursor.setDate(cursor.getDate() - (days - 1));
+  for (let i = 0; i < days; i++) {
+    const iso = toISODate(cursor);
+    const entry = byDate[iso] || { total: 0, completed: 0 };
+    result.push({ iso, date: new Date(cursor), ...entry });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return result;
+};
+
+// Completion rate split by priority — surfaces whether high-priority work
+// actually gets done, or gets deprioritized in practice despite the label.
+export const computePriorityBreakdown = (tasks) => {
+  const order = ["high", "medium", "low"];
+  return order.map((priority) => {
+    const inPriority = tasks.filter((t) => t.priority === priority);
+    const completed = inPriority.filter((t) => t.completed).length;
+    const total = inPriority.length;
+    const rate = total ? Math.round((completed / total) * 100) : null;
+    return { priority, completed, total, rate };
+  });
+};
+
+// Actual pace (units/day since goal creation) vs. the pace needed to hit
+// the deadline. Returns null status if there's no deadline or no progress yet.
+export const computeGoalPace = (goal) => {
+  if (!goal.deadline) return { status: "no_deadline" };
+
+  const created = new Date(goal.createdAt);
+  const now = new Date();
+  const deadline = new Date(goal.deadline);
+
+  const daysElapsed = Math.max(1, Math.round((now - created) / (1000 * 60 * 60 * 24)));
+  const daysRemaining = Math.round((deadline.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
+
+  const avgPerDay = goal.currentValue / daysElapsed;
+  const remaining = Math.max(0, goal.targetValue - goal.currentValue);
+
+  if (remaining === 0) return { status: "complete", avgPerDay };
+  if (daysRemaining < 0) return { status: "overdue", avgPerDay };
+  if (daysRemaining === 0) return { status: "due_today", avgPerDay, remaining };
+
+  const neededPerDay = remaining / daysRemaining;
+  const status = avgPerDay >= neededPerDay ? "on_track" : "behind";
+
+  return { status, avgPerDay, neededPerDay, daysRemaining, remaining };
 };
