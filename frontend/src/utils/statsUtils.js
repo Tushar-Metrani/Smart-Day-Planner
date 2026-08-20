@@ -94,15 +94,23 @@ export const computePriorityBreakdown = (tasks) => {
   });
 };
 
+// Normalizes to midnight so "days elapsed" counts calendar days, not
+// fractional 24-hour periods — a goal created 3 hours ago should count
+// as 1 day elapsed today, not 0.
+const daysBetween = (earlier, later) => {
+  const a = new Date(earlier);
+  const b = new Date(later);
+  a.setHours(0, 0, 0, 0);
+  b.setHours(0, 0, 0, 0);
+  return Math.round((b - a) / (1000 * 60 * 60 * 24));
+};
+
 export const computeGoalPace = (goal) => {
   if (!goal.deadline) return { status: "no_deadline" };
 
-  const created = new Date(goal.createdAt);
   const now = new Date();
-  const deadline = new Date(goal.deadline);
-
-  const daysElapsed = Math.max(1, Math.round((now - created) / (1000 * 60 * 60 * 24)));
-  const daysRemaining = Math.round((deadline.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
+  const daysElapsed = Math.max(1, daysBetween(goal.createdAt, now) + 1); // +1 so day-of-creation counts as day 1
+  const daysRemaining = daysBetween(now, goal.deadline);
 
   const avgPerDay = goal.currentValue / daysElapsed;
   const remaining = Math.max(0, goal.targetValue - goal.currentValue);
