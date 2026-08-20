@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { CATEGORY_LIST, getCategoryMeta } from "../utils/categoryMeta.js";
 
 const PRIORITIES = ["low", "medium", "high"];
 
 export default function GoalModal({ onSave, onClose }) {
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("general");
   const [priority, setPriority] = useState("medium");
   const [unit, setUnit] = useState("pages");
   const [targetValue, setTargetValue] = useState(100);
@@ -20,7 +18,6 @@ export default function GoalModal({ onSave, onClose }) {
     }
     onSave({
       title,
-      category,
       priority,
       unit,
       targetValue: Number(targetValue) || 1,
@@ -35,24 +32,14 @@ export default function GoalModal({ onSave, onClose }) {
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <input placeholder="Goal title (e.g. Read Atomic Habits)" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
 
-          <div style={{ display: "flex", gap: 10 }}>
-            <label style={{ flex: 1 }}>
-              Category
-              <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: "100%" }}>
-                {CATEGORY_LIST.map((c) => (
-                  <option key={c} value={c}>{getCategoryMeta(c).icon} {getCategoryMeta(c).label}</option>
-                ))}
-              </select>
-            </label>
-            <label style={{ flex: 1 }}>
-              Priority
-              <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ width: "100%" }}>
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label>
+            Priority
+            <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ width: "100%" }}>
+              {PRIORITIES.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </label>
 
           <div style={{ display: "flex", gap: 10 }}>
             <label style={{ flex: 1 }}>

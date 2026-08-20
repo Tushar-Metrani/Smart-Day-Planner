@@ -17,7 +17,6 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
   const [error, setError] = useState("");
 
   const isEditingSeriesInstance = Boolean(existingTask?.seriesId);
-  const linkedGoal = goals.find((g) => g._id === goalId);
 
   useEffect(() => {
     setTitle(existingTask?.title || "");
@@ -32,13 +31,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
     setError("");
   }, [existingTask]);
 
-  // When a goal is linked, the task's category always mirrors the goal's —
-  // no separate input, so they can't drift apart.
-  useEffect(() => {
-    if (linkedGoal) setCategory(linkedGoal.category);
-  }, [linkedGoal]);
-
-  const handleSubmit = (e) => {
+   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
     if (!title.trim()) return;
@@ -58,7 +51,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
       startTime,
       endTime,
       priority,
-      category: linkedGoal ? linkedGoal.category : category,
+      category,
       goal: goalId || undefined,
     };
     if (!existingTask) {
@@ -95,25 +88,14 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
                 ))}
               </select>
             </label>
-
-            {linkedGoal ? (
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13 }}>Category</div>
-                <div style={{ fontSize: 13, padding: "6px 0", color: "#666" }}>
-                  {getCategoryMeta(linkedGoal.category).icon} {getCategoryMeta(linkedGoal.category).label}
-                  <span style={{ fontSize: 11, color: "#aaa" }}> (from goal)</span>
-                </div>
-              </div>
-            ) : (
-              <label style={{ flex: 1 }}>
-                Category
-                <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: "100%" }}>
-                  {CATEGORY_LIST.map((c) => (
-                    <option key={c} value={c}>{getCategoryMeta(c).icon} {getCategoryMeta(c).label}</option>
-                  ))}
-                </select>
-              </label>
-            )}
+            <label style={{ flex: 1 }}>
+              Category
+              <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: "100%" }}>
+                {CATEGORY_LIST.map((c) => (
+                  <option key={c} value={c}>{getCategoryMeta(c).icon} {getCategoryMeta(c).label}</option>
+                ))}
+              </select>
+            </label>
           </div>
 
           {!existingTask && (
