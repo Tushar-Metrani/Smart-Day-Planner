@@ -62,7 +62,6 @@ export const formatMinutes = (minutes) => {
   return `${m}m`;
 };
 
-// One entry per calendar day in range, oldest first — used for the daily trend bars.
 export const computeDailyTrend = (tasks, days) => {
   const byDate = {};
   for (const t of tasks) {
@@ -84,8 +83,6 @@ export const computeDailyTrend = (tasks, days) => {
   return result;
 };
 
-// Completion rate split by priority — surfaces whether high-priority work
-// actually gets done, or gets deprioritized in practice despite the label.
 export const computePriorityBreakdown = (tasks) => {
   const order = ["high", "medium", "low"];
   return order.map((priority) => {
@@ -97,8 +94,6 @@ export const computePriorityBreakdown = (tasks) => {
   });
 };
 
-// Actual pace (units/day since goal creation) vs. the pace needed to hit
-// the deadline. Returns null status if there's no deadline or no progress yet.
 export const computeGoalPace = (goal) => {
   if (!goal.deadline) return { status: "no_deadline" };
 
@@ -120,4 +115,18 @@ export const computeGoalPace = (goal) => {
   const status = avgPerDay >= neededPerDay ? "on_track" : "behind";
 
   return { status, avgPerDay, neededPerDay, daysRemaining, remaining };
+};
+
+// Slice a superset of tasks (e.g. a 90-day fetch) down to just the last N days,
+// so the Trends range toggle doesn't need a fresh network request each time.
+export const filterTasksToRange = (tasks, days) => {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  cutoff.setHours(0, 0, 0, 0);
+  return tasks.filter((t) => new Date(t.date) >= cutoff);
+};
+
+export const filterTasksToToday = (tasks) => {
+  const todayIso = toISODate(new Date());
+  return tasks.filter((t) => toISODate(t.date) === todayIso);
 };

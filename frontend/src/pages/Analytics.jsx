@@ -9,20 +9,22 @@ import {
   computePriorityBreakdown,
   computeGoalPace,
   formatMinutes,
+  filterTasksToRange,
+  filterTasksToToday,
 } from "../utils/statsUtils.js";
 
 const RANGE_OPTIONS = [
-  { label: "Today", days: 1 },
   { label: "7 days", days: 7 },
   { label: "30 days", days: 30 },
   { label: "90 days", days: 90 },
 ];
 
 const PRIORITY_COLOR = { high: "#dc2626", medium: "#2563eb", low: "#65a30d" };
+const FETCH_WINDOW_DAYS = 90; // fetched once; range toggle just slices this locally
 
 export default function Analytics() {
-  const [rangeDays, setRangeDays] = useState(7);
-  const [tasks, setTasks] = useState([]);
+  const [rangeDays, setRangeDays] = useState(30);
+  const [allTasks, setAllTasks] = useState([]); // last 90 days, fetched once
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,18 +33,18 @@ export default function Analytics() {
       setLoading(true);
       const end = new Date();
       const start = new Date();
-      start.setDate(start.getDate() - rangeDays);
+      start.setDate(start.getDate() - FETCH_WINDOW_DAYS);
 
       const [tasksRes, goalsRes] = await Promise.all([
         api.get("/tasks", { params: { start: start.toISOString(), end: end.toISOString() } }),
         api.get("/goals"),
       ]);
-      setTasks(tasksRes.data);
+      setAllTasks(tasksRes.data);
       setGoals(goalsRes.data);
       setLoading(false);
     };
     fetchData();
-  }, [rangeDays]);
+  }, []);
 
   if (loading) {
     return (
@@ -52,18 +54,39 @@ export default function Analytics() {
     );
   }
 
-  const taskStats = computeTaskStats(tasks);
-  const streak = computeStreak(tasks);
+  // Section 1: Today — always "right now", no range selector involved.
+  const todayTasks = filterTasksToToday(allTasks);
+  const todayStats = computeTaskStats(todayTasks);
+  const streak = computeStreak(allTasks);
+
+  // Section 2: Trends — everything here respects the range toggle.
+  const rangeTasks = filterTasksToRange(allTasks, rangeDays);
+  const rangeStats = computeTaskStats(rangeTasks);
+  const trend = computeDailyTrend(rangeTasks, Math.min(rangeDays, 30)); // cap bars at 30 for readability
+  const priorityBreakdown = computePriorityBreakdown(rangeTasks);
+  const maxCategoryMinutes = Math.max(1, ...rangeStats.categoryBreakdown.map((c) => c.minutes));
+  const maxTrendCompleted = Math.max(1, ...trend.map((d) => d.completed));
+
+  // Section 3: Goals — current state, independent of any range.
   const goalStats = computeGoalStats(goals);
-  const maxCategoryMinutes = Math.max(1, ...taskStats.categoryBreakdown.map((c) => c.minutes));
-  const trend = computeDailyTrend(tasks, Math.min(rangeDays, 30)); // cap bars at 30 so they stay readable
-  const priorityBreakdown = computePriorityBreakdown(tasks);
   const activeGoalsWithDeadline = goals.filter((g) => g.status !== "completed" && g.deadline);
 
   return (
     <div style={{ maxWidth: 700, margin: "20px auto", padding: "0 16px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>Analytics</h2>
+      <h2 style={{ marginBottom: 4 }}>Analytics</h2>
+
+      {/* ---------- SECTION 1: TODAY ---------- */}
+      <h3 style={{ marginBottom: 8 }}>Today</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 32 }}>
+        <StatCard label="Completed today" value={`${todayStats.completed}/${todayStats.total}`} />
+        <StatCard label="Completion rate" value={`${todayStats.completionRate}%`} />
+        <StatCard label="Time logged" value={formatMinutes(todayStats.totalCompletedMinutes)} />
+        <StatCard label="Current streak" value={`${streak} day${streak === 1 ? "" : "s"}`} />
+      </div>
+
+      {/* ---------- SECTION 2: TRENDS ---------- */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <h3 style={{ margin: 0 }}>Trends</h3>
         <div style={{ display: "flex", gap: 6 }}>
           {RANGE_OPTIONS.map((opt) => (
             <button
@@ -77,39 +100,37 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-        <StatCard label="Completion rate" value={`${taskStats.completionRate}%`} />
-        <StatCard label="Current streak" value={`${streak} day${streak === 1 ? "" : "s"}`} />
-        <StatCard label="Time completed" value={formatMinutes(taskStats.totalCompletedMinutes)} />
-        <StatCard label="Blocks scheduled" value={taskStats.total} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 16 }}>
+        <StatCard label="Completion rate" value={`${rangeStats.completionRate}%`} />
+        <StatCard label="Time completed" value={formatMinutes(rangeStats.totalCompletedMinutes)} />
       </div>
 
-      {/* Daily trend */}
-      <h3>Daily activity</h3>
+      <h4 style={{ marginBottom: 8 }}>Daily activity</h4>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 90, marginBottom: 8 }}>
         {trend.map((d) => {
-          const barHeight = d.total ? Math.max(4, (d.completed / Math.max(1, maxTrendTotal(trend))) * 80) : 2;
+          const barHeight = d.completed ? Math.max(4, (d.completed / maxTrendCompleted) * 80) : 2;
           return (
-            <div key={d.iso} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }} title={`${d.completed}/${d.total} completed`}>
+            <div
+              key={d.iso}
+              title={`${d.completed}/${d.total} completed`}
+              style={{ flex: 1, display: "flex", alignItems: "flex-end", height: "100%" }}
+            >
               <div style={{ width: "100%", height: barHeight, background: d.completed ? "#2563eb" : "#eee", borderRadius: 2 }} />
             </div>
           );
         })}
       </div>
       <div style={{ fontSize: 11, color: "#888", marginBottom: 24 }}>
-        Bar height = tasks completed per day, last {trend.length} days. Hover a bar for the exact count.
+        Bar height = tasks completed per day, last {trend.length} days.
       </div>
 
-      {/* Priority follow-through */}
-      <h3>Follow-through by priority</h3>
+      <h4 style={{ marginBottom: 8 }}>Follow-through by priority</h4>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
         {priorityBreakdown.map((p) => (
           <div key={p.priority}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 3 }}>
               <span style={{ textTransform: "capitalize" }}>{p.priority}</span>
-              <span style={{ color: "#888" }}>
-                {p.total ? `${p.completed}/${p.total} · ${p.rate}%` : "No blocks"}
-              </span>
+              <span style={{ color: "#888" }}>{p.total ? `${p.completed}/${p.total} · ${p.rate}%` : "No blocks"}</span>
             </div>
             <div style={{ background: "#f0f0f0", borderRadius: 4, height: 8 }}>
               <div style={{ width: `${p.rate || 0}%`, background: PRIORITY_COLOR[p.priority], height: 8, borderRadius: 4 }} />
@@ -118,13 +139,12 @@ export default function Analytics() {
         ))}
       </div>
 
-      {/* Category breakdown */}
-      <h3>Time by category</h3>
-      {taskStats.categoryBreakdown.length === 0 && (
-        <p style={{ color: "#888" }}>No completed blocks with a time range in this period yet.</p>
+      <h4 style={{ marginBottom: 8 }}>Time by category</h4>
+      {rangeStats.categoryBreakdown.length === 0 && (
+        <p style={{ color: "#888" }}>No completed blocks in this period yet.</p>
       )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-        {taskStats.categoryBreakdown.map((c) => {
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+        {rangeStats.categoryBreakdown.map((c) => {
           const meta = getCategoryMeta(c.category);
           const widthPct = (c.minutes / maxCategoryMinutes) * 100;
           return (
@@ -141,12 +161,19 @@ export default function Analytics() {
         })}
       </div>
 
-      {/* Goal pace */}
-      <h3>Goal pace</h3>
+      {/* ---------- SECTION 3: GOALS ---------- */}
+      <h3 style={{ marginBottom: 8 }}>Goals</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+        <StatCard label="Completed" value={goalStats.completed} />
+        <StatCard label="Pending" value={goalStats.pending} />
+        <StatCard label="Overdue" value={goalStats.overdue} accent={goalStats.overdue > 0 ? "#dc2626" : undefined} />
+      </div>
+
+      <h4 style={{ marginBottom: 8 }}>Pace</h4>
       {activeGoalsWithDeadline.length === 0 && (
         <p style={{ color: "#888" }}>No active goals with a deadline set yet.</p>
       )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {activeGoalsWithDeadline.map((g) => {
           const pace = computeGoalPace(g);
           const pct = Math.min(100, Math.round((g.currentValue / g.targetValue) * 100));
@@ -173,20 +200,8 @@ export default function Analytics() {
           );
         })}
       </div>
-
-      {/* Goals summary */}
-      <h3>Goals overview</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-        <StatCard label="Completed" value={goalStats.completed} />
-        <StatCard label="Pending" value={goalStats.pending} />
-        <StatCard label="Overdue" value={goalStats.overdue} accent={goalStats.overdue > 0 ? "#dc2626" : undefined} />
-      </div>
     </div>
   );
-}
-
-function maxTrendTotal(trend) {
-  return Math.max(1, ...trend.map((d) => d.completed));
 }
 
 function PaceBadge({ pace }) {
