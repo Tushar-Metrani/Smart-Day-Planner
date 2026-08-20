@@ -23,7 +23,7 @@ const PRIORITY_COLOR = { high: "#dc2626", medium: "#2563eb", low: "#65a30d" };
 const FETCH_WINDOW_DAYS = 90; // fetched once; range toggle just slices this locally
 
 export default function Analytics() {
-  const [rangeDays, setRangeDays] = useState(7);
+  const [rangeDays, setRangeDays] = useState(30);
   const [allTasks, setAllTasks] = useState([]); // last 90 days, fetched once
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,7 @@ export default function Analytics() {
   const trend = computeDailyTrend(rangeTasks, Math.min(rangeDays, 30)); // cap bars at 30 for readability
   const priorityBreakdown = computePriorityBreakdown(rangeTasks);
   const maxCategoryMinutes = Math.max(1, ...rangeStats.categoryBreakdown.map((c) => c.minutes));
-  const maxTrendTotal = Math.max(1, ...trend.map((d) => d.total));
+  const maxTrendCompleted = Math.max(1, ...trend.map((d) => d.completed));
 
   // Section 3: Goals — current state, independent of any range.
   const goalStats = computeGoalStats(goals);
@@ -106,37 +106,22 @@ export default function Analytics() {
       </div>
 
       <h4 style={{ marginBottom: 8 }}>Daily activity</h4>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 90, marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 90, marginBottom: 8 }}>
         {trend.map((d) => {
-          const scale = 80 / Math.max(1, maxTrendTotal); // px per task
-          const completedH = d.completed * scale;
-          const missedH = d.missed * scale;
-          const pendingH = d.pending * scale;
-          const hasAny = d.total > 0;
+          const barHeight = d.completed ? Math.max(4, (d.completed / maxTrendCompleted) * 80) : 2;
           return (
             <div
               key={d.iso}
-              title={`${d.completed} completed, ${d.missed} missed, ${d.pending} pending`}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column-reverse",
-                height: "100%",
-                minHeight: hasAny ? undefined : 2,
-              }}
+              title={`${d.completed}/${d.total} completed`}
+              style={{ flex: 1, display: "flex", alignItems: "flex-end", height: "100%" }}
             >
-              {!hasAny && <div style={{ width: "100%", height: 2, background: "#eee", borderRadius: 2 }} />}
-              {d.completed > 0 && <div style={{ width: "100%", height: completedH, background: "#2563eb", borderRadius: "2px 2px 0 0" }} />}
-              {d.missed > 0 && <div style={{ width: "100%", height: missedH, background: "#f3a8a8" }} />}
-              {d.pending > 0 && <div style={{ width: "100%", height: pendingH, background: "#e5e5e5" }} />}
+              <div style={{ width: "100%", height: barHeight, background: d.completed ? "#2563eb" : "#eee", borderRadius: 2 }} />
             </div>
           );
         })}
       </div>
-      <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#888", marginBottom: 24 }}>
-        <Legend color="#2563eb" label="Completed" />
-        <Legend color="#f3a8a8" label="Missed" />
-        <Legend color="#e5e5e5" label="Pending today" />
+      <div style={{ fontSize: 11, color: "#888", marginBottom: 24 }}>
+        Bar height = tasks completed per day, last {trend.length} days.
       </div>
 
       <h4 style={{ marginBottom: 8 }}>Follow-through by priority</h4>
@@ -242,14 +227,5 @@ function StatCard({ label, value, accent }) {
       <div style={{ fontSize: 12, color: "#888" }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color: accent || "#111" }}>{value}</div>
     </div>
-  );
-}
-
-function Legend({ color, label }) {
-  return (
-    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <span style={{ width: 8, height: 8, borderRadius: 2, background: color, display: "inline-block" }} />
-      {label}
-    </span>
   );
 }

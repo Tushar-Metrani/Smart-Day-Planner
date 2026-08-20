@@ -71,24 +71,13 @@ export const computeDailyTrend = (tasks, days) => {
     if (t.completed) byDate[iso].completed += 1;
   }
 
-  const todayIso = toISODate(new Date());
   const result = [];
   const cursor = new Date();
   cursor.setDate(cursor.getDate() - (days - 1));
   for (let i = 0; i < days; i++) {
     const iso = toISODate(cursor);
     const entry = byDate[iso] || { total: 0, completed: 0 };
-    const incomplete = entry.total - entry.completed;
-    // Split incomplete into "missed" (day already over) vs "pending" (still today, not a failure yet)
-    const isPast = iso < todayIso;
-    result.push({
-      iso,
-      date: new Date(cursor),
-      total: entry.total,
-      completed: entry.completed,
-      missed: isPast ? incomplete : 0,
-      pending: !isPast ? incomplete : 0,
-    });
+    result.push({ iso, date: new Date(cursor), ...entry });
     cursor.setDate(cursor.getDate() + 1);
   }
   return result;
