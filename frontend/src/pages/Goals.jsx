@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios.js";
 import GoalModal from "../components/GoalModal.jsx";
 import { computeGoalScore, deadlineLabel } from "../utils/goalUtils.js";
+import { getCategoryMeta } from "../utils/categoryMeta.js";
 
 export default function Goals() {
   const [goals, setGoals] = useState([]);
@@ -60,6 +61,7 @@ export default function Goals() {
                 <span style={{ padding: "2px 8px", borderRadius: 4, fontSize: 11, color: "white", background: priorityColor(g.priority) }}>
                   {g.priority}
                 </span>
+                <span style={{ fontSize: 12 }}>{getCategoryMeta(g.category).icon}</span>
                 <div style={{ flex: 1 }}>
                   <div>{g.title}</div>
                   <div style={{ fontSize: 12, color: "#888" }}>
