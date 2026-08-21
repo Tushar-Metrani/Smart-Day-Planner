@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios.js";
 import GoalModal from "../components/GoalModal.jsx";
+import GoalSessionsModal from "../components/GoalSessionsModal.jsx";
 import { computeGoalScore, deadlineLabel } from "../utils/goalUtils.js";
 
 export default function Goals() {
   const [goals, setGoals] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
+  const [sessionsGoal, setSessionsGoal] = useState(null);
 
   const fetchGoals = async () => {
     const { data } = await api.get("/goals");
@@ -87,7 +89,12 @@ export default function Goals() {
                 <button onClick={() => deleteGoal(g._id)} style={{ color: "red" }}>Delete</button>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#666", marginBottom: 3 }}>
-                <span>{g.currentValue} / {g.targetValue} {g.unit}</span>
+                <button
+                  onClick={() => setSessionsGoal(g)}
+                  style={{ background: "none", border: "none", padding: 0, color: "#2563eb", cursor: "pointer", fontSize: 12 }}
+                >
+                  {g.currentValue} / {g.targetValue} {g.unit}
+                </button>
                 <span>{pct}%</span>
               </div>
               <div style={{ background: "#f0f0f0", borderRadius: 4, height: 8 }}>
@@ -105,9 +112,12 @@ export default function Goals() {
           <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
             {completed.map((g) => (
               <li key={g._id} style={{ display: "flex", alignItems: "center", gap: 10, padding: 8, color: "#888" }}>
-                <span style={{ textDecoration: "line-through", flex: 1 }}>
+                <button
+                  onClick={() => setSessionsGoal(g)}
+                  style={{ background: "none", border: "none", padding: 0, textDecoration: "line-through", flex: 1, textAlign: "left", color: "#888", cursor: "pointer" }}
+                >
                   {g.title} ({g.currentValue}/{g.targetValue} {g.unit})
-                </span>
+                </button>
                 <button onClick={() => updateStatus(g, "pending")}>Reopen</button>
                 <button onClick={() => deleteGoal(g._id)} style={{ color: "red" }}>Delete</button>
               </li>
@@ -118,6 +128,9 @@ export default function Goals() {
 
       {modalOpen && (
         <GoalModal existingGoal={editingGoal} onSave={handleSave} onClose={() => setModalOpen(false)} />
+      )}
+      {sessionsGoal && (
+        <GoalSessionsModal goal={sessionsGoal} onClose={() => setSessionsGoal(null)} />
       )}
     </div>
   );

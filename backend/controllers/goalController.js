@@ -6,7 +6,6 @@ export const getGoals = async (req, res, next) => {
   try {
     const goals = await Goal.find({ user: req.userId }).sort({ createdAt: -1 });
 
-    // Sum progressAmount across completed tasks linked to each goal, in one query.
     const progress = await Task.aggregate([
       {
         $match: {
@@ -30,9 +29,30 @@ export const getGoals = async (req, res, next) => {
   }
 };
 
+// Returns every completed, progress-logging task linked to this goal, newest first —
+// the "receipts" behind the goal's currentValue total.
+export const getGoalSessions = async (req, res, next) => {
+  try {
+    const goal = await Goal.findOne({ _id: req.params.id, user: req.userId });
+    if (!goal) return res.status(404).json({ message: "Goal not found" });
+
+    const sessions = await Task.find({
+      user: req.userId,
+      goal: req.params.id,
+      completed: true,
+    })
+      .sort({ date: -1, startTime: -1 })
+      .select("title date startTime endTime progressAmount category");
+
+    res.json(sessions);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createGoal = async (req, res, next) => {
   try {
-    const { currentValue, ...rest } = req.body; // currentValue is always derived, never accepted from the client
+    const { currentValue, ...rest } = req.body;
     const goal = await Goal.create({ ...rest, user: req.userId });
     res.status(201).json({ ...goal.toObject(), currentValue: 0 });
   } catch (err) {
