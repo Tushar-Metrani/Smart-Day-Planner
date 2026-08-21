@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, CalendarDays } from "lucide-react";
 import { formatFullDate } from "../utils/dateUtils.js";
 import { getCategoryMeta, timeToMinutes } from "../utils/categoryMeta.js";
 import ProgressPrompt from "./ProgressPrompt.jsx";
 
-export default function TimelineView({ date, tasks, goals = [], onToggleComplete, onEditTask, onAddTask, onPrevDay, onNextDay }) {
+export default function TimelineView({ date, tasks, goals = [], onToggleComplete, onEditTask, onAddTask, onPrevDay, onNextDay, onDateClick }) {
   const [promptTask, setPromptTask] = useState(null);
   const sorted = [...tasks].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
 
@@ -13,7 +14,6 @@ export default function TimelineView({ date, tasks, goals = [], onToggleComplete
   };
 
   const handleCheckboxChange = (task) => {
-    // Only intercept when *completing* a goal-linked task — unchecking needs no input.
     if (!task.completed && task.goal) {
       setPromptTask(task);
     } else {
@@ -28,16 +28,25 @@ export default function TimelineView({ date, tasks, goals = [], onToggleComplete
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button onClick={onPrevDay}>◀</button>
-          <h3 style={{ margin: 0 }}>{formatFullDate(date)}</h3>
-          <button onClick={onNextDay}>▶</button>
+      <div className="page-header">
+        <div className="flex-row gap-2">
+          <button className="btn btn-icon btn-ghost" onClick={onPrevDay} aria-label="Previous day">
+            <ChevronLeft size={20} />
+          </button>
+          <button className="btn-ghost flex-row gap-1" onClick={onDateClick} style={{ padding: "6px 10px", borderRadius: "var(--radius-sm)" }}>
+            <CalendarDays size={16} />
+            <h3 style={{ margin: 0 }}>{formatFullDate(date)}</h3>
+          </button>
+          <button className="btn btn-icon btn-ghost" onClick={onNextDay} aria-label="Next day">
+            <ChevronRight size={20} />
+          </button>
         </div>
-        <button onClick={onAddTask}>+ Add block</button>
+        <button className="btn btn-primary btn-icon" onClick={onAddTask} aria-label="Add block">
+          <Plus size={20} />
+        </button>
       </div>
 
-      {sorted.length === 0 && <p style={{ color: "#888" }}>Nothing scheduled for this day.</p>}
+      {sorted.length === 0 && <p className="text-muted">Nothing scheduled for this day.</p>}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {sorted.map((t) => {
@@ -48,35 +57,23 @@ export default function TimelineView({ date, tasks, goals = [], onToggleComplete
 
           return (
             <div key={t._id} style={{ display: "flex", gap: 10 }}>
-              <div style={{ width: 50, flexShrink: 0, fontSize: 12, color: "#888", textAlign: "right", paddingTop: 10 }}>
+              <div className="time-mono text-xs text-muted" style={{ width: 54, flexShrink: 0, textAlign: "right", paddingTop: 12 }}>
                 {formatTime(t.startTime)}
               </div>
 
               <div
                 onClick={() => onEditTask(t)}
+                className="card"
                 style={{
                   flex: 1,
-                  background: "white",
-                  border: "1px solid #eee",
                   borderLeft: `4px solid ${meta.color}`,
-                  borderRadius: 8,
-                  padding: "8px 12px",
                   cursor: "pointer",
                   opacity: t.completed ? 0.55 : 1,
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                  padding: "10px 14px",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "white",
-                      background: meta.color,
-                      padding: "2px 8px",
-                      borderRadius: 10,
-                    }}
-                  >
+                <div className="flex-between mb-1">
+                  <span className="badge" style={{ background: meta.color }}>
                     {meta.icon} {meta.label}
                   </span>
                   <input
@@ -84,14 +81,17 @@ export default function TimelineView({ date, tasks, goals = [], onToggleComplete
                     checked={t.completed}
                     onClick={(e) => e.stopPropagation()}
                     onChange={() => handleCheckboxChange(t)}
+                    style={{ width: 20, height: 20 }}
                   />
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, textDecoration: t.completed ? "line-through" : "none" }}>
+                <div style={{ fontWeight: 600, textDecoration: t.completed ? "line-through" : "none" }}>
                   {t.title}
                 </div>
-                <div style={{ fontSize: 12, color: "#888" }}>
+                <div className="text-xs text-muted time-mono">
                   {durationLabel}
-                  {t.completed && t.goal && t.progressAmount > 0 && ` · logged ${t.progressAmount} ${findGoal(t)?.unit || ""}`}
+                  {t.completed && t.goal && t.progressAmount > 0 && (
+                    <span className="time-mono"> · logged {t.progressAmount} {findGoal(t)?.unit || ""}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -115,7 +115,7 @@ function formatTime(time) {
   const [h, m] = time.split(":").map(Number);
   const period = h < 12 ? "AM" : "PM";
   const display = h % 12 === 0 ? 12 : h % 12;
-  return `${display}:${String(m).padStart(2, "0")}`;
+  return `${display}:${String(m).padStart(2, "0")} ${period}`;
 }
 
 function formatDuration(minutes) {

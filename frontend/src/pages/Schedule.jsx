@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios.js";
 import TimelineView from "../components/TimelineView.jsx";
 import TaskModal from "../components/TaskModal.jsx";
-import MonthView from "../components/MonthView.jsx";
-import { getMonthGrid, toISODate, formatMonthYear, isSameMonth } from "../utils/dateUtils.js";
+import DatePickerCalendar from "../components/DatePickerCalendar.jsx";
+import { toISODate, isSameMonth } from "../utils/dateUtils.js";
 
 export default function Schedule() {
   const [selectedDay, setSelectedDay] = useState(new Date());
@@ -14,15 +14,14 @@ export default function Schedule() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
-  // Fetch a whole month range around whatever month contains selectedDay,
-  // so the mini date-picker's dots (task indicators) and the timeline share one fetch.
-  const gridDays = useMemo(() => getMonthGrid(pickerMonth), [pickerMonth]);
-  const rangeStart = gridDays[0];
-  const rangeEnd = gridDays[gridDays.length - 1];
-
   const fetchTasks = async () => {
+    const dayStart = new Date(selectedDay);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(selectedDay);
+    dayEnd.setHours(23, 59, 59, 999);
+
     const { data } = await api.get("/tasks", {
-      params: { start: rangeStart.toISOString(), end: rangeEnd.toISOString() },
+      params: { start: dayStart.toISOString(), end: dayEnd.toISOString() },
     });
     setTasks(data);
   };
@@ -35,30 +34,11 @@ export default function Schedule() {
   useEffect(() => {
     fetchTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickerMonth]);
+  }, [selectedDay]);
 
   useEffect(() => {
     fetchGoals();
   }, []);
-
-  useEffect(() => {
-    // Keep the picker's visible month in sync if the user jumps to a day
-    // outside the currently loaded month (e.g. via prev/next day arrows).
-    if (!isSameMonth(selectedDay, pickerMonth)) setPickerMonth(selectedDay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDay]);
-
-  const tasksByDate = useMemo(() => {
-    const map = {};
-    for (const t of tasks) {
-      const iso = toISODate(t.date);
-      if (!map[iso]) map[iso] = [];
-      map[iso].push(t);
-    }
-    return map;
-  }, [tasks]);
-
-  const selectedDayTasks = tasksByDate[toISODate(selectedDay)] || [];
 
   const changeDay = (delta) => {
     const d = new Date(selectedDay);
@@ -66,11 +46,28 @@ export default function Schedule() {
     setSelectedDay(d);
   };
 
-  const goToday = () => setSelectedDay(new Date());
+  const openPicker = () => {
+    setPickerMonth(selectedDay);
+    setPickerOpen((o) => !o);
+  };
 
   const handlePickDay = (day) => {
     setSelectedDay(day);
     setPickerOpen(false);
+  };
+
+  const goToday = () => {
+    const today = new Date();
+    setSelectedDay(today);
+    setPickerOpen(false);
+  };
+
+  const changePickerMonth = (delta) => {
+    setPickerMonth((d) => {
+      const n = new Date(d);
+      n.setMonth(n.getMonth() + delta);
+      return n;
+    });
   };
 
   const openNewTaskModal = () => {
@@ -109,45 +106,29 @@ export default function Schedule() {
   };
 
   return (
-    <div style={{ maxWidth: 700, margin: "20px auto", padding: "0 16px", position: "relative" }}>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 8 }}>
-        <button onClick={goToday}>Today</button>
-        <button onClick={() => setPickerOpen((o) => !o)}>📅 Jump to date</button>
-      </div>
-
+    <div className="page" style={{ position: "relative" }}>
       {pickerOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: 44,
-            right: 16,
-            zIndex: 50,
-            background: "white",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            padding: 12,
-            width: 320,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <button onClick={() => setPickerMonth((d) => { const n = new Date(d); n.setMonth(n.getMonth() - 1); return n; })}>◀</button>
-            <strong>{formatMonthYear(pickerMonth)}</strong>
-            <button onClick={() => setPickerMonth((d) => { const n = new Date(d); n.setMonth(n.getMonth() + 1); return n; })}>▶</button>
-          </div>
-          <MonthView currentDate={pickerMonth} tasksByDate={tasksByDate} onSelectDay={handlePickDay} />
+        <div style={{ position: "absolute", top: 54, left: 0, zIndex: 60 }}>
+          <DatePickerCalendar
+            month={pickerMonth}
+            onChangeMonth={changePickerMonth}
+            selectedDay={selectedDay}
+            onSelectDay={handlePickDay}
+            onToday={goToday}
+          />
         </div>
       )}
 
       <TimelineView
         date={selectedDay}
-        tasks={selectedDayTasks}
+        tasks={tasks}
         goals={goals}
         onToggleComplete={toggleComplete}
         onEditTask={openEditTaskModal}
         onAddTask={openNewTaskModal}
         onPrevDay={() => changeDay(-1)}
         onNextDay={() => changeDay(1)}
+        onDateClick={openPicker}
       />
 
       {modalOpen && (

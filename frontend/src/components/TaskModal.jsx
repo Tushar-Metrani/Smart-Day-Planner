@@ -31,7 +31,7 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
     setError("");
   }, [existingTask]);
 
-   const handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
     if (!title.trim()) return;
@@ -61,66 +61,66 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
   };
 
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-        <h3>{existingTask ? "Edit block" : "New block"}</h3>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
-          <textarea placeholder="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title">{existingTask ? "Edit block" : "New block"}</h3>
+        <form onSubmit={handleSubmit} className="modal-form">
+          <input className="input" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+          <textarea className="textarea" placeholder="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
 
-          <div style={{ display: "flex", gap: 10 }}>
-            <label style={{ flex: 1 }}>
-              Start *
-              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} style={{ width: "100%" }} required />
-            </label>
-            <label style={{ flex: 1 }}>
-              End *
-              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={{ width: "100%" }} required />
-            </label>
+          <div className="form-row">
+            <div className="field">
+              <label className="field-label">Start *</label>
+              <input type="time" className="input" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label className="field-label">End *</label>
+              <input type="time" className="input" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+            </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
-            <label style={{ flex: 1 }}>
-              Priority
-              <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ width: "100%" }}>
+          <div className="form-row">
+            <div className="field">
+              <label className="field-label">Priority</label>
+              <select className="select" value={priority} onChange={(e) => setPriority(e.target.value)}>
                 {PRIORITIES.map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
-            </label>
-            <label style={{ flex: 1 }}>
-              Category
-              <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: "100%" }}>
+            </div>
+            <div className="field">
+              <label className="field-label">Category</label>
+              <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
                 {CATEGORY_LIST.map((c) => (
                   <option key={c} value={c}>{getCategoryMeta(c).icon} {getCategoryMeta(c).label}</option>
                 ))}
               </select>
-            </label>
+            </div>
           </div>
 
           {!existingTask && (
             <>
-              <label>
-                Repeats
-                <select value={recurrenceType} onChange={(e) => setRecurrenceType(e.target.value)} style={{ width: "100%" }}>
+              <div className="field">
+                <label className="field-label">Repeats</label>
+                <select className="select" value={recurrenceType} onChange={(e) => setRecurrenceType(e.target.value)}>
                   <option value="none">Does not repeat</option>
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                 </select>
-              </label>
+              </div>
               {recurrenceType !== "none" && (
-                <label>
-                  Ends on (optional — defaults to 90 days out)
-                  <input type="date" value={recurrenceEnd} onChange={(e) => setRecurrenceEnd(e.target.value)} style={{ width: "100%" }} />
-                </label>
+                <div className="field">
+                  <label className="field-label">Ends on (optional — defaults to 90 days out)</label>
+                  <input type="date" className="input" value={recurrenceEnd} onChange={(e) => setRecurrenceEnd(e.target.value)} />
+                </div>
               )}
             </>
           )}
 
           {isEditingSeriesInstance && (
-            <div style={{ fontSize: 13, background: "#f8f8f8", padding: 8, borderRadius: 6 }}>
-              <div style={{ marginBottom: 4, color: "#666" }}>Part of a repeating series. Apply changes to:</div>
+            <div className="text-sm" style={{ background: "var(--color-paper)", padding: 10, borderRadius: "var(--radius-sm)" }}>
+              <div className="text-muted mb-1">Part of a repeating series. Apply changes to:</div>
               <label style={{ display: "block" }}>
                 <input type="radio" checked={scope === "this"} onChange={() => setScope("this")} /> Just this occurrence
               </label>
@@ -131,30 +131,30 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
           )}
 
           {goals.length > 0 && (
-            <label>
-              Link to goal (optional)
-              <select value={goalId} onChange={(e) => setGoalId(e.target.value)} style={{ width: "100%" }}>
+            <div className="field">
+              <label className="field-label">Link to goal (optional)</label>
+              <select className="select" value={goalId} onChange={(e) => setGoalId(e.target.value)}>
                 <option value="">None</option>
                 {goals.map((g) => (
                   <option key={g._id} value={g._id}>{g.title}</option>
                 ))}
               </select>
-            </label>
+            </div>
           )}
 
-          {error && <p style={{ color: "#dc2626", fontSize: 13, margin: 0 }}>{error}</p>}
+          {error && <p className="error-text">{error}</p>}
 
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
+          <div className="modal-actions-split">
             <div>
               {existingTask && (
-                <button type="button" onClick={() => onDelete(existingTask._id, scope)} style={{ color: "red" }}>
+                <button type="button" className="btn btn-danger" onClick={() => onDelete(existingTask._id, scope)}>
                   Delete
                 </button>
               )}
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button type="button" onClick={onClose}>Cancel</button>
-              <button type="submit">Save</button>
+            <div className="flex-row gap-2">
+              <button type="button" className="btn" onClick={onClose}>Cancel</button>
+              <button type="submit" className="btn btn-primary">Save</button>
             </div>
           </div>
         </form>
@@ -162,21 +162,3 @@ export default function TaskModal({ date, existingTask, goals = [], onSave, onDe
     </div>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 100,
-};
-
-const modalStyle = {
-  background: "white",
-  padding: 24,
-  borderRadius: 8,
-  width: 360,
-  maxWidth: "90vw",
-};

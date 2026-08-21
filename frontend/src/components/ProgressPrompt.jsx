@@ -8,47 +8,29 @@ export default function ProgressPrompt({ task, goal, onConfirm, onCancel }) {
   };
 
   return (
-    <div style={overlayStyle} onClick={onCancel}>
-      <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-        <h4 style={{ marginTop: 0 }}>Log progress</h4>
-        <p style={{ fontSize: 13, color: "#666", marginTop: -6 }}>
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h4 className="modal-title">Log progress</h4>
+        <p className="text-sm text-muted" style={{ marginTop: -4 }}>
           "{task.title}" is linked to <strong>{goal?.title || "a goal"}</strong>
         </p>
-        <label style={{ display: "block", marginBottom: 12 }}>
-          How many {goal?.unit || "units"} did you complete this session?
+        <div className="field mb-3">
+          <label className="field-label">How many {goal?.unit || "units"} did you complete this session?</label>
           <input
             type="number"
             min="0"
             autoFocus
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            style={{ width: "100%", marginTop: 4 }}
+            className="input"
             onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
           />
-        </label>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button type="button" onClick={onCancel}>Cancel</button>
-          <button type="button" onClick={handleConfirm}>Mark complete</button>
+        </div>
+        <div className="modal-actions">
+          <button className="btn" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleConfirm}>Mark complete</button>
         </div>
       </div>
     </div>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 110,
-};
-
-const modalStyle = {
-  background: "white",
-  padding: 20,
-  borderRadius: 8,
-  width: 320,
-  maxWidth: "90vw",
-};
