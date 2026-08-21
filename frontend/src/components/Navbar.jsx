@@ -1,28 +1,33 @@
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+
+const LINKS = [
+  { to: "/", label: "Schedule" },
+  { to: "/goals", label: "Goals" },
+  { to: "/analytics", label: "Analytics" },
+  { to: "/settings", label: "Settings" },
+];
 
 export default function NavBar() {
   const { user, logout } = useAuth();
-  const location = useLocation();
-
-  const linkStyle = (path) => ({
-    marginRight: 16,
-    fontWeight: location.pathname === path ? 700 : 400,
-    color: location.pathname === path ? "#2563eb" : "#333",
-    textDecoration: "none",
-  });
-
+  
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 1000, margin: "20px auto 0", padding: "0 16px" }}>
-      <div>
-        <Link to="/" style={linkStyle("/")}>Schedule</Link>
-        <Link to="/goals" style={linkStyle("/goals")}>Goals</Link>
-        <Link to="/analytics" style={linkStyle("/analytics")}>Analytics</Link>
-        <Link to="/settings" style={linkStyle("/settings")}>Settings</Link>
+    <div className="top-nav">
+      <div className="top-nav-links">
+        {LINKS.map(({ to, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === "/"}
+            className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+          >
+            {label}
+          </NavLink>
+        ))}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span>Hi, {user?.name}</span>
-        <button onClick={logout}>Log out</button>
+      <div className="flex-row gap-3">
+        <span className="text-sm text-muted">Hi, {user?.name}</span>
+        <button className="btn btn-sm" onClick={logout}>Log out</button>
       </div>
     </div>
   );
