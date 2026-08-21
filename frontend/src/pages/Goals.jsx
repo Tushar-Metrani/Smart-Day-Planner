@@ -7,6 +7,7 @@ import { computeGoalScore, deadlineLabel } from "../utils/goalUtils.js";
 export default function Goals() {
   const [goals, setGoals] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
 
   const fetchGoals = async () => {
     const { data } = await api.get("/goals");
@@ -17,8 +18,22 @@ export default function Goals() {
     fetchGoals();
   }, []);
 
-  const addGoal = async (payload) => {
-    await api.post("/goals", payload);
+  const openNewGoalModal = () => {
+    setEditingGoal(null);
+    setModalOpen(true);
+  };
+
+  const openEditGoalModal = (goal) => {
+    setEditingGoal(goal);
+    setModalOpen(true);
+  };
+
+  const handleSave = async (payload) => {
+    if (editingGoal) {
+      await api.put(`/goals/${editingGoal._id}`, payload);
+    } else {
+      await api.post("/goals", payload);
+    }
     setModalOpen(false);
     fetchGoals();
   };
@@ -42,7 +57,7 @@ export default function Goals() {
     <div style={{ maxWidth: 700, margin: "20px auto", padding: "0 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
         <h2 style={{ margin: 0 }}>Goals</h2>
-        <button onClick={() => setModalOpen(true)}>+ Add goal</button>
+        <button onClick={openNewGoalModal}>+ Add goal</button>
       </div>
       <p style={{ color: "#666", fontSize: 14 }}>
         Progress fills in automatically from completed schedule blocks linked to each goal — go to{" "}
@@ -67,6 +82,7 @@ export default function Goals() {
                     {inProgress && (g.deadline ? " · In progress" : "In progress")}
                   </div>
                 </div>
+                <button onClick={() => openEditGoalModal(g)}>Edit</button>
                 <button onClick={() => updateStatus(g, "completed")}>Mark done</button>
                 <button onClick={() => deleteGoal(g._id)} style={{ color: "red" }}>Delete</button>
               </div>
@@ -100,7 +116,9 @@ export default function Goals() {
         </>
       )}
 
-      {modalOpen && <GoalModal onSave={addGoal} onClose={() => setModalOpen(false)} />}
+      {modalOpen && (
+        <GoalModal existingGoal={editingGoal} onSave={handleSave} onClose={() => setModalOpen(false)} />
+      )}
     </div>
   );
 }
