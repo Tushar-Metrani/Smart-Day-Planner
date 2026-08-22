@@ -260,6 +260,32 @@ h4 { font-size: var(--text-md); }
 }
 .btn-link:hover { text-decoration: underline; }
 
+.fab {
+  position: fixed;
+  right: var(--space-5);
+  bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + var(--space-4));
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(37, 65, 178, 0.35);
+  z-index: 90;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+.fab:hover { background: #1e3596; }
+.fab:active { transform: scale(0.94); }
+
+@media (min-width: 768px) {
+  .fab {
+    bottom: var(--space-6);
+  }
+}
+
 /* ============================================================
    FORM CONTROLS
    ============================================================ */

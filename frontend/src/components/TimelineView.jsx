@@ -28,21 +28,16 @@ export default function TimelineView({ date, tasks, goals = [], onToggleComplete
 
   return (
     <div>
-      <div className="page-header">
-        <div className="flex-row gap-2">
-          <button className="btn btn-icon btn-ghost" onClick={onPrevDay} aria-label="Previous day">
-            <ChevronLeft size={20} />
-          </button>
-          <button className="btn-ghost flex-row gap-1" onClick={onDateClick} style={{ padding: "6px 10px", borderRadius: "var(--radius-sm)" }}>
-            <CalendarDays size={16} />
-            <h3 style={{ margin: 0 }}>{formatFullDate(date)}</h3>
-          </button>
-          <button className="btn btn-icon btn-ghost" onClick={onNextDay} aria-label="Next day">
-            <ChevronRight size={20} />
-          </button>
-        </div>
-        <button className="btn btn-primary btn-icon" onClick={onAddTask} aria-label="Add block">
-          <Plus size={20} />
+      <div className="flex-row" style={{ justifyContent: "center", gap: "var(--space-2)", marginBottom: "var(--space-5)" }}>
+        <button className="btn btn-icon btn-ghost" onClick={onPrevDay} aria-label="Previous day">
+          <ChevronLeft size={20} />
+        </button>
+        <button className="btn-ghost flex-row gap-1" onClick={onDateClick} style={{ padding: "6px 12px", borderRadius: "var(--radius-sm)" }}>
+          <CalendarDays size={16} />
+          <h3 style={{ margin: 0 }}>{formatFullDate(date)}</h3>
+        </button>
+        <button className="btn btn-icon btn-ghost" onClick={onNextDay} aria-label="Next day">
+          <ChevronRight size={20} />
         </button>
       </div>
 
@@ -98,6 +93,10 @@ export default function TimelineView({ date, tasks, goals = [], onToggleComplete
           );
         })}
       </div>
+
+      <button className="fab" onClick={onAddTask} aria-label="Add block">
+        <Plus size={26} />
+      </button>
 
       {promptTask && (
         <ProgressPrompt
