@@ -6,6 +6,7 @@ import Goals from "./pages/Goals.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Settings from "./pages/Settings.jsx";
 import NavBar from "./components/NavBar.jsx";
+import MobileHeader from "./components/MobileHeader.jsx";
 import BottomNav from "./components/BottomNav.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -15,6 +16,7 @@ const Private = ({ children }) => {
   return (
     <>
       <NavBar />
+      <MobileHeader />
       {children}
       <BottomNav />
     </>

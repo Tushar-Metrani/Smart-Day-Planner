@@ -64,7 +64,7 @@ export default function Goals() {
 
   return (
     <div className="page">
-      <h2 className="mb-1">Goals</h2>
+      <h2 className="mb-1 page-title">Goals</h2>
       <p className="text-sm text-muted mb-4">
         Progress fills in automatically from completed schedule blocks linked to each goal — go to{" "}
         <Link to="/">Schedule</Link> to log a session.

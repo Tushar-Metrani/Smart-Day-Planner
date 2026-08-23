@@ -75,7 +75,7 @@ export default function Analytics() {
 
   return (
     <div className="page">
-      <h2 className="mb-4">Analytics</h2>
+      <h2 className="mb-4 page-title">Analytics</h2>
 
       {/* ---------- TODAY ---------- */}
       <div className="section">

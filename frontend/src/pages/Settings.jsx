@@ -59,7 +59,7 @@ export default function Settings() {
 
   return (
     <div className="page">
-      <h2 className="mb-4">Settings</h2>
+      <h2 className="mb-4 page-title">Settings</h2>
 
       <div className="section">
         <h3 className="section-title">Profile</h3>

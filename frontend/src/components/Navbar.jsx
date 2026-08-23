@@ -10,25 +10,32 @@ const LINKS = [
 
 export default function NavBar() {
   const { user, logout } = useAuth();
-  
+
   return (
-    <div className="top-nav">
-      <div className="top-nav-links">
-        {LINKS.map(({ to, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === "/"}
-            className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
-          >
-            {label}
-          </NavLink>
-        ))}
+    <header className="top-nav-bar">
+      <div className="top-nav">
+        <div className="flex-row gap-6">
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "var(--text-md)" }}>
+            Smart Day Planner
+          </span>
+          <div className="top-nav-links">
+            {LINKS.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={to === "/"}
+                className={({ isActive }) => `top-nav-link${isActive ? " active" : ""}`}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+        <div className="flex-row gap-3">
+          <span className="text-sm text-muted">Hi, {user?.name}</span>
+          <button className="btn btn-sm" onClick={logout}>Log out</button>
+        </div>
       </div>
-      <div className="flex-row gap-3">
-        <span className="text-sm text-muted">Hi, {user?.name}</span>
-        <button className="btn btn-sm" onClick={logout}>Log out</button>
-      </div>
-    </div>
+    </header>
   );
 }
