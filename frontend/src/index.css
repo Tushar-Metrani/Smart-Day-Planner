@@ -63,7 +63,7 @@
   --shadow-modal: 0 12px 32px rgba(28, 30, 38, 0.18);
 
   /* ---- Layout ---- */
-  --max-width: 720px;
+  --max-width: 768px;
   --bottom-nav-height: 60px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
@@ -576,7 +576,7 @@ h4 { font-size: var(--text-md); }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: var(--max-width);
+    max-width: 800px;
     margin: 0 auto;
     padding: var(--space-4) var(--space-4);
   }
