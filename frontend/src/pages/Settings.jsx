@@ -58,57 +58,67 @@ export default function Settings() {
   };
 
   return (
-    <div style={{ maxWidth: 500, margin: "20px auto", padding: "0 16px" }}>
-      <h2>Settings</h2>
+    <div className="page">
+      <h2 className="mb-4">Settings</h2>
 
-      <section style={{ marginBottom: 32 }}>
-        <h3>Profile</h3>
-        <form onSubmit={saveProfile} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label>
-            Name
-            <input value={name} onChange={(e) => setName(e.target.value)} style={{ width: "100%" }} />
-          </label>
-          <label>
-            Email
-            <input value={user?.email || ""} disabled style={{ width: "100%", background: "#f5f5f5" }} />
-          </label>
-          <button type="submit" style={{ alignSelf: "flex-start" }}>Save profile</button>
-          {profileMsg && <p style={{ fontSize: 13, color: profileMsg === "Saved." ? "#16a34a" : "#dc2626" }}>{profileMsg}</p>}
+      <div className="section">
+        <h3 className="section-title">Profile</h3>
+        <form onSubmit={saveProfile} className="card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div className="field">
+            <label className="field-label">Name</label>
+            <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="field">
+            <label className="field-label">Email</label>
+            <input className="input" value={user?.email || ""} disabled />
+          </div>
+          <div>
+            <button type="submit" className="btn btn-primary">Save profile</button>
+          </div>
+          {profileMsg && (
+            <p className={profileMsg === "Saved." ? "success-text" : "error-text"}>{profileMsg}</p>
+          )}
         </form>
-      </section>
+      </div>
 
-      <section style={{ marginBottom: 32 }}>
-        <h3>Change password</h3>
-        <form onSubmit={savePassword} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label>
-            Current password
-            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} style={{ width: "100%" }} />
-          </label>
-          <label>
-            New password
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: "100%" }} />
-          </label>
-          <button type="submit" style={{ alignSelf: "flex-start" }}>Update password</button>
-          {passwordMsg && <p style={{ fontSize: 13, color: passwordMsg === "Password updated." ? "#16a34a" : "#dc2626" }}>{passwordMsg}</p>}
+      <div className="section">
+        <h3 className="section-title">Change password</h3>
+        <form onSubmit={savePassword} className="card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div className="field">
+            <label className="field-label">Current password</label>
+            <input type="password" className="input" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+          </div>
+          <div className="field">
+            <label className="field-label">New password</label>
+            <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+          </div>
+          <div>
+            <button type="submit" className="btn btn-primary">Update password</button>
+          </div>
+          {passwordMsg && (
+            <p className={passwordMsg === "Password updated." ? "success-text" : "error-text"}>{passwordMsg}</p>
+          )}
         </form>
-      </section>
+      </div>
 
-      <section style={{ border: "1px solid #fca5a5", borderRadius: 8, padding: 16 }}>
-        <h3 style={{ color: "#dc2626", marginTop: 0 }}>Danger zone</h3>
-        <p style={{ fontSize: 13, color: "#666" }}>
-          This permanently deletes your account and all schedule blocks and goals. This cannot be undone.
-        </p>
-        <input
-          placeholder='Type "DELETE" to confirm'
-          value={deleteConfirm}
-          onChange={(e) => setDeleteConfirm(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
-        {deleteError && <p style={{ fontSize: 13, color: "#dc2626" }}>{deleteError}</p>}
-        <button onClick={handleDeleteAccount} style={{ background: "#dc2626", color: "white", border: "none", padding: "8px 14px", borderRadius: 6 }}>
-          Delete my account
-        </button>
-      </section>
+      <div className="section" style={{ marginBottom: 0 }}>
+        <h3 className="section-title" style={{ color: "var(--color-danger)" }}>Danger zone</h3>
+        <div className="card" style={{ borderColor: "var(--color-danger-soft)" }}>
+          <p className="text-sm text-muted mb-3">
+            This permanently deletes your account and all schedule blocks and goals. This cannot be undone.
+          </p>
+          <input
+            placeholder='Type "DELETE" to confirm'
+            className="input mb-2"
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+          />
+          {deleteError && <p className="error-text mb-2">{deleteError}</p>}
+          <button onClick={handleDeleteAccount} className="btn btn-danger-solid">
+            Delete my account
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

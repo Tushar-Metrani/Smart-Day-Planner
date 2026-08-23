@@ -184,6 +184,26 @@ h4 { font-size: var(--text-md); }
   margin-bottom: var(--space-3);
 }
 
+.auth-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: var(--color-paper);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+.auth-title {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-1);
+}
+
 /* ============================================================
    BUTTONS
    ============================================================ */
