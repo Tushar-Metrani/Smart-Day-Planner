@@ -13,6 +13,11 @@ connectDB();
 
 const app = express();
 
+app.use((req, res, next) => {
+  console.log("Origin:", req.headers.origin);
+  next();
+});
+
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 
