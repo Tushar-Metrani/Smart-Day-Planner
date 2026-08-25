@@ -13,12 +13,21 @@ connectDB();
 
 const app = express();
 
-app.use((req, res, next) => {
-  console.log("Origin:", req.headers.origin);
-  next();
-});
+const allowedOrigins = [
+  process.env.CLIENT_URL,   // your web frontend
+  "https://localhost",      // Capacitor Android
+];
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({
+  origin: function (origin, callback) {
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+}));
+
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
