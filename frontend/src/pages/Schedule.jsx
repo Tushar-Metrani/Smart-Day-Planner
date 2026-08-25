@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 import api from "../api/axios.js";
 import TimelineView from "../components/TimelineView.jsx";
 import TaskModal from "../components/TaskModal.jsx";
 import DatePickerCalendar from "../components/DatePickerCalendar.jsx";
-import { toISODate, isSameMonth } from "../utils/dateUtils.js";
+import ScheduleSuggestionsModal from "../components/ScheduleSuggestionsModal.jsx";
+import { toISODate } from "../utils/dateUtils.js";
 
 export default function Schedule() {
   const [selectedDay, setSelectedDay] = useState(new Date());
   const [pickerMonth, setPickerMonth] = useState(new Date());
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [goals, setGoals] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -80,6 +83,20 @@ export default function Schedule() {
     setModalOpen(true);
   };
 
+  const handleAddSuggestion = async (suggestion) => {
+    await api.post("/tasks", {
+      title: suggestion.title,
+      date: selectedDay,
+      startTime: suggestion.startTime,
+      endTime: suggestion.endTime,
+      priority: "medium",
+      category: suggestion.category,
+      goal: suggestion.goalId,
+      progressAmount: suggestion.progressAmount,
+    });
+    fetchTasks();
+  };
+
   const handleSave = async (payload, scope) => {
     if (editingTask) {
       await api.put(`/tasks/${editingTask._id}?scope=${scope}`, payload);
@@ -119,6 +136,12 @@ export default function Schedule() {
         </div>
       )}
 
+      <div className="flex-row" style={{ justifyContent: "center", marginBottom: 8 }}>
+        <button className="btn btn-sm" onClick={() => setSuggestionsOpen(true)}>
+          <Sparkles size={14} /> Suggest schedule
+        </button>
+      </div>
+
       <TimelineView
         date={selectedDay}
         tasks={tasks}
@@ -141,6 +164,15 @@ export default function Schedule() {
           onClose={() => setModalOpen(false)}
         />
       )}
+
+      {suggestionsOpen && (
+        <ScheduleSuggestionsModal
+          date={selectedDay}
+          onAddSuggestion={handleAddSuggestion}
+          onClose={() => setSuggestionsOpen(false)}
+        />
+      )}
+      
     </div>
   );
 }

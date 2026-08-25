@@ -8,6 +8,8 @@ export default function Settings() {
   const navigate = useNavigate();
 
   const [name, setName] = useState(user?.name || "");
+  const [workDayStart, setWorkDayStart] = useState(user?.workDayStart || "07:00");
+  const [workDayEnd, setWorkDayEnd] = useState(user?.workDayEnd || "22:00");
   const [profileMsg, setProfileMsg] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -21,8 +23,8 @@ export default function Settings() {
     e.preventDefault();
     setProfileMsg("");
     try {
-      const { data } = await api.put("/auth/me", { name });
-      updateUser({ name: data.name });
+      const { data } = await api.put("/auth/me", { name, workDayStart, workDayEnd });
+      updateUser({ name: data.name, workDayStart: data.workDayStart, workDayEnd: data.workDayEnd });
       setProfileMsg("Saved.");
     } catch (err) {
       setProfileMsg(err.response?.data?.message || "Failed to save");
@@ -72,6 +74,24 @@ export default function Settings() {
             <label className="field-label">Email</label>
             <input className="input" value={user?.email || ""} disabled />
           </div>
+
+          <div>
+            <label className="field-label" style={{ display: "block", marginBottom: 6 }}>Working hours</label>
+            <p className="text-xs text-muted" style={{ marginTop: 0, marginBottom: 8 }}>
+              Used by the AI schedule assistant to know when to suggest free time.
+            </p>
+            <div className="form-row">
+              <div className="field">
+                <label className="field-label">Start</label>
+                <input type="time" className="input" value={workDayStart} onChange={(e) => setWorkDayStart(e.target.value)} />
+              </div>
+              <div className="field">
+                <label className="field-label">End</label>
+                <input type="time" className="input" value={workDayEnd} onChange={(e) => setWorkDayEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
           <div>
             <button type="submit" className="btn btn-primary">Save profile</button>
           </div>

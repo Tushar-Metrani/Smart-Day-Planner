@@ -17,7 +17,8 @@ export const register = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      timezone: user.timezone,
+      workDayStart: user.workDayStart,
+      workDayEnd: user.workDayEnd,
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -36,7 +37,8 @@ export const login = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      timezone: user.timezone,
+      workDayStart: user.workDayStart,
+      workDayEnd: user.workDayEnd,
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -55,12 +57,13 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { ...(name && { name }) },
-      { new: true }
-    ).select("-password");
+    const { name, workDayStart, workDayEnd } = req.body;
+    const update = {};
+    if (name) update.name = name;
+    if (workDayStart) update.workDayStart = workDayStart;
+    if (workDayEnd) update.workDayEnd = workDayEnd;
+
+    const user = await User.findByIdAndUpdate(req.userId, update, { new: true }).select("-password");
     res.json(user);
   } catch (err) {
     next(err);
@@ -77,7 +80,7 @@ export const changePassword = async (req, res, next) => {
     const matches = await user.comparePassword(currentPassword);
     if (!matches) return res.status(401).json({ message: "Current password is incorrect" });
 
-    user.password = newPassword; // pre-save hook rehashes it
+    user.password = newPassword;
     await user.save();
     res.json({ message: "Password updated" });
   } catch (err) {

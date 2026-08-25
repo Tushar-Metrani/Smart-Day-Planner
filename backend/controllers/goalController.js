@@ -2,35 +2,38 @@ import mongoose from "mongoose";
 import Goal from "../models/Goal.js";
 import Task from "../models/Task.js";
 
+// Shared by getGoals and the AI suggestion endpoint — one place that knows
+// how to attach live currentValue to raw Goal documents.
+export const fetchGoalsWithProgress = async (userId) => {
+  const goals = await Goal.find({ user: userId }).sort({ createdAt: -1 });
+
+  const progress = await Task.aggregate([
+    {
+      $match: {
+        user: new mongoose.Types.ObjectId(userId),
+        completed: true,
+        goal: { $ne: null },
+      },
+    },
+    { $group: { _id: "$goal", currentValue: { $sum: "$progressAmount" } } },
+  ]);
+  const progressMap = Object.fromEntries(progress.map((p) => [String(p._id), p.currentValue]));
+
+  return goals.map((g) => ({
+    ...g.toObject(),
+    currentValue: progressMap[String(g._id)] || 0,
+  }));
+};
+
 export const getGoals = async (req, res, next) => {
   try {
-    const goals = await Goal.find({ user: req.userId }).sort({ createdAt: -1 });
-
-    const progress = await Task.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(req.userId),
-          completed: true,
-          goal: { $ne: null },
-        },
-      },
-      { $group: { _id: "$goal", currentValue: { $sum: "$progressAmount" } } },
-    ]);
-    const progressMap = Object.fromEntries(progress.map((p) => [String(p._id), p.currentValue]));
-
-    const goalsWithProgress = goals.map((g) => ({
-      ...g.toObject(),
-      currentValue: progressMap[String(g._id)] || 0,
-    }));
-
+    const goalsWithProgress = await fetchGoalsWithProgress(req.userId);
     res.json(goalsWithProgress);
   } catch (err) {
     next(err);
   }
 };
 
-// Returns every completed, progress-logging task linked to this goal, newest first —
-// the "receipts" behind the goal's currentValue total.
 export const getGoalSessions = async (req, res, next) => {
   try {
     const goal = await Goal.findOne({ _id: req.params.id, user: req.userId });

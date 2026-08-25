@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
-    timezone: { type: String, default: "UTC" },
+    workDayStart: { type: String, default: "07:00" },
+    workDayEnd: { type: String, default: "22:00" },
   },
   { timestamps: true }
 );
