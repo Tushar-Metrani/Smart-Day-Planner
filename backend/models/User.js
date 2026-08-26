@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     workDayStart: { type: String, default: "07:00" },
     workDayEnd: { type: String, default: "22:00" },
+    remindersEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

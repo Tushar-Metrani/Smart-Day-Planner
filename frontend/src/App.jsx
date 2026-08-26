@@ -8,6 +8,7 @@ import Settings from "./pages/Settings.jsx";
 import NavBar from "./components/NavBar.jsx";
 import MobileHeader from "./components/MobileHeader.jsx";
 import BottomNav from "./components/BottomNav.jsx";
+import NotificationSync from "./components/NotificationSync.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 const Private = ({ children }) => {
@@ -17,6 +18,7 @@ const Private = ({ children }) => {
     <>
       <NavBar />
       <MobileHeader />
+      <NotificationSync />
       {children}
       <BottomNav />
     </>

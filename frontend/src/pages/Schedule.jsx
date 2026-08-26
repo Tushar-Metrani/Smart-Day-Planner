@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
+import { useAuth } from "../context/AuthContext.jsx";
+import { resyncReminders } from "../utils/notifications.js";
 import api from "../api/axios.js";
 import TimelineView from "../components/TimelineView.jsx";
 import TaskModal from "../components/TaskModal.jsx";
@@ -8,6 +10,7 @@ import ScheduleSuggestionsModal from "../components/ScheduleSuggestionsModal.jsx
 import { toISODate } from "../utils/dateUtils.js";
 
 export default function Schedule() {
+  const { user } = useAuth();
   const [selectedDay, setSelectedDay] = useState(new Date());
   const [pickerMonth, setPickerMonth] = useState(new Date());
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -95,6 +98,7 @@ export default function Schedule() {
       progressAmount: suggestion.progressAmount,
     });
     fetchTasks();
+    resyncReminders(user?.remindersEnabled);
   };
 
   const handleSave = async (payload, scope) => {
@@ -105,12 +109,14 @@ export default function Schedule() {
     }
     setModalOpen(false);
     fetchTasks();
+    resyncReminders(user?.remindersEnabled);
   };
 
   const handleDelete = async (id, scope) => {
     await api.delete(`/tasks/${id}?scope=${scope}`);
     setModalOpen(false);
     fetchTasks();
+    resyncReminders(user?.remindersEnabled);
   };
 
   const toggleComplete = async (task, progressAmount) => {
@@ -120,6 +126,7 @@ export default function Schedule() {
     }
     await api.put(`/tasks/${task._id}`, payload);
     fetchTasks();
+    resyncReminders(user?.remindersEnabled);
   };
 
   return (

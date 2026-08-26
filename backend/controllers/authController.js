@@ -19,6 +19,7 @@ export const register = async (req, res, next) => {
       email: user.email,
       workDayStart: user.workDayStart,
       workDayEnd: user.workDayEnd,
+      remindersEnabled: user.remindersEnabled,
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -39,6 +40,7 @@ export const login = async (req, res, next) => {
       email: user.email,
       workDayStart: user.workDayStart,
       workDayEnd: user.workDayEnd,
+      remindersEnabled: user.remindersEnabled,
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -57,11 +59,12 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name, workDayStart, workDayEnd } = req.body;
+    const { name, workDayStart, workDayEnd, remindersEnabled } = req.body;
     const update = {};
     if (name) update.name = name;
     if (workDayStart) update.workDayStart = workDayStart;
     if (workDayEnd) update.workDayEnd = workDayEnd;
+    if (typeof remindersEnabled === "boolean") update.remindersEnabled = remindersEnabled;
 
     const user = await User.findByIdAndUpdate(req.userId, update, { new: true }).select("-password");
     res.json(user);

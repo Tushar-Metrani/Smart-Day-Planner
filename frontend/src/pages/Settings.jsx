@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { requestReminderPermission, resyncReminders } from "../utils/notifications.js";
 
 export default function Settings() {
   const { user, updateUser, logout } = useAuth();
@@ -11,6 +12,9 @@ export default function Settings() {
   const [workDayStart, setWorkDayStart] = useState(user?.workDayStart || "07:00");
   const [workDayEnd, setWorkDayEnd] = useState(user?.workDayEnd || "22:00");
   const [profileMsg, setProfileMsg] = useState("");
+
+  const [remindersEnabled, setRemindersEnabled] = useState(user?.remindersEnabled || false);
+  const [reminderMsg, setReminderMsg] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -29,6 +33,24 @@ export default function Settings() {
     } catch (err) {
       setProfileMsg(err.response?.data?.message || "Failed to save");
     }
+  };
+
+  const toggleReminders = async () => {
+    setReminderMsg("");
+    const next = !remindersEnabled;
+
+    if (next) {
+      const granted = await requestReminderPermission();
+      if (!granted) {
+        setReminderMsg("Notification permission was denied — enable it in your device settings to use reminders.");
+        return;
+      }
+    }
+
+    setRemindersEnabled(next);
+    await api.put("/auth/me", { remindersEnabled: next });
+    updateUser({ remindersEnabled: next });
+    await resyncReminders(next);
   };
 
   const savePassword = async (e) => {
@@ -99,6 +121,25 @@ export default function Settings() {
             <p className={profileMsg === "Saved." ? "success-text" : "error-text"}>{profileMsg}</p>
           )}
         </form>
+      </div>
+
+      <div className="section">
+        <h3 className="section-title">Notifications</h3>
+        <div className="card flex-between">
+          <div>
+            <div style={{ fontWeight: 600 }}>Reminders</div>
+            <p className="text-xs text-muted" style={{ margin: "2px 0 0" }}>
+              Notify me 10 minutes before each scheduled block starts.
+            </p>
+          </div>
+          <button
+            className={`btn btn-sm ${remindersEnabled ? "btn-primary" : ""}`}
+            onClick={toggleReminders}
+          >
+            {remindersEnabled ? "On" : "Off"}
+          </button>
+        </div>
+        {reminderMsg && <p className="error-text" style={{ marginTop: 8 }}>{reminderMsg}</p>}
       </div>
 
       <div className="section">
