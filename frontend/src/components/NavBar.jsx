@@ -15,6 +15,14 @@ export default function NavBar() {
     <header className="top-nav-bar">
       <div className="top-nav">
         <div className="flex-row gap-6">
+          <img
+                src="/logo.svg"
+                alt=""
+                className="logo"
+                width="36"
+                height="36"
+                style={{marginRight:"5px"}}
+            />
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "var(--text-md)" }}>
             Smart Day Planner
           </span>

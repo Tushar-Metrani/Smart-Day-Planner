@@ -23,7 +23,18 @@ export default function Login() {
   return (
     <div className="auth-shell">
       <div className="card auth-card">
-        <h1 className="auth-title">Smart Day Planner</h1>
+        
+        <div className="auth-head">
+          <img
+                src="/logo.svg"
+                alt=""
+                className="logo"
+                width="36"
+                height="36"
+                style={{marginRight:"5px"}}
+            />
+         <h1 className="auth-title">Smart Day Planner</h1>
+        </div>
         <p className="text-sm text-muted mb-4">Log in to see your schedule.</p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
